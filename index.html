@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>APIC - AI Picture Enhancement</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+
+<body>
+    <div class="container">
+        <header class="header">
+            <div class="logo1">
+                <img class="logo" src="./logo xóa phông.png">
+                <p class="slogant">Làm nét ảnh bằng AI!</p>
+            </div>
+        </header>
+
+        <main class="main">
+            <div class="upload-section" id="uploadSection">
+                <div class="upload-area" id="uploadArea">
+                    <div class="upload-icon">📸</div>
+                    <h2>Kéo thả ảnh vào đây hoặc click để chọn</h2>
+                    <p>Hỗ trợ JPG, PNG, WebP (tối đa 10MB)</p>
+                    <input type="file" id="fileInput" accept="image/*" hidden>
+                    <button class="upload-btn" onclick="document.getElementById('fileInput').click()">
+                        Chọn ảnh
+                    </button>
+                </div>
+            </div>
+
+            <div class="processing-section" id="processSection" style="display: none;">
+                <div class="image-container">
+                    <div class="image-box">
+                        <h3>Ảnh gốc</h3>
+                        <img id="originalImage" alt="Ảnh gốc">
+                    </div>
+                    <div class="arrow">→</div>
+                    <div class="image-box">
+                        <h3>Ảnh đã làm nét</h3>
+                        <div id="enhancedImageContainer">
+                            <div class="loading" id="loadingSpinner">
+                                <div class="spinner"></div>
+                                <p>Đang xử lý bằng AI...</p>
+                            </div>
+                            <img id="enhancedImage" alt="Ảnh đã làm nét" style="display: none;">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="controls">
+                    <button class="btn btn-primary" id="enhanceBtn">🚀 Làm nét bằng AI</button>
+                    <button class="btn btn-secondary" id="downloadBtn" style="display: none;">💾 Tải xuống</button>
+                    <button class="btn btn-outline" id="newImageBtn">📷 Chọn ảnh khác</button>
+                    <button class="btn btn-outline" id="debugBtn"
+                        onclick="console.log('Debug info:', {originalImage: document.getElementById('originalImage').src, processSection: document.getElementById('processSection').style.display})">🔍
+                        Debug</button>
+                </div>
+            </div>
+        </main>
+
+        <footer class="footer">
+            <p>Dự án APIC - AI picture của gaulmt</p>
+        </footer>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+
+</html>
