@@ -134,9 +134,20 @@ class APICApp {
         try {
             let enhancedImageData;
 
-            // Luôn dùng AI Simulation cho demo
-            console.log('🎯 Demo mode: Sử dụng AI Simulation');
-            enhancedImageData = await this.superAdvancedSimulation(this.originalImageData);
+            // Kiểm tra có API config không
+            if (window.API_CONFIG && window.API_CONFIG.HUGGING_FACE_TOKEN && window.API_CONFIG.HUGGING_FACE_TOKEN !== 'YOUR_HF_TOKEN_HERE') {
+                try {
+                    console.log('🚀 Thử AI services thực...');
+                    enhancedImageData = await tryRealAIServices(this.originalImageData);
+                } catch (error) {
+                    console.log('⚠️ AI services thất bại, fallback simulation...');
+                    console.log('💡 Lỗi:', error.message);
+                    enhancedImageData = await this.superAdvancedSimulation(this.originalImageData);
+                }
+            } else {
+                console.log('🎯 Demo mode: Sử dụng AI Simulation (tạo config.js để dùng AI thật)');
+                enhancedImageData = await this.superAdvancedSimulation(this.originalImageData);
+            }
 
             // Display enhanced image
             this.enhancedImage.src = enhancedImageData;
@@ -345,6 +356,119 @@ function boostClarity(imageData) {
     }
 
     return new ImageData(output, imageData.width, imageData.height);
+}
+
+// Thử các AI service thực như Hugging Face, ClipDrop, etc.
+async function tryRealAIServices(imageData) {
+    const services = [
+        () => enhanceWithHuggingFace(imageData),
+        () => enhanceWithClipDrop(imageData)
+    ];
+
+    for (let i = 0; i < services.length; i++) {
+        try {
+            console.log(`🔥 Thử AI service ${i + 1}...`);
+            return await services[i]();
+        } catch (error) {
+            console.log(`❌ Service ${i + 1} failed:`, error.message);
+        }
+    }
+
+    throw new Error('Tất cả AI services thất bại');
+}
+
+// 🤗 Hugging Face API - MIỄN PHÍ hoàn toàn, không giới hạn
+async function enhanceWithHuggingFace(imageData) {
+    // Kiểm tra xem config.js có được load không
+    if (!window.API_CONFIG || !window.API_CONFIG.HUGGING_FACE_TOKEN || window.API_CONFIG.HUGGING_FACE_TOKEN === 'YOUR_HF_TOKEN_HERE') {
+        throw new Error('🔧 Demo mode: Chưa cấu hình Hugging Face token. Sẽ dùng AI Simulation.');
+    }
+
+    const response = await fetch(imageData);
+    const blob = await response.blob();
+
+    // Resize nếu quá lớn (HF có giới hạn 5MB)
+    const resizedBlob = await resizeForAPI(blob, 1024);
+
+    console.log('🤗 Đang gửi ảnh lên Hugging Face...');
+
+    const apiResponse = await fetch('https://api-inference.huggingface.co/models/caidas/swin2SR-realworld-sr-x4-64-bsrgan-psnr', {
+        method: 'POST',
+        headers: {
+            'Authorization': `Bearer ${window.API_CONFIG.HUGGING_FACE_TOKEN}`,
+            'Content-Type': 'application/octet-stream'
+        },
+        body: resizedBlob
+    });
+
+    if (!apiResponse.ok) {
+        const errorText = await apiResponse.text();
+        throw new Error(`Hugging Face API failed: ${apiResponse.status} - ${errorText}`);
+    }
+
+    const result = await apiResponse.blob();
+    console.log('✅ Hugging Face thành công!');
+    return URL.createObjectURL(result);
+}
+
+// 🎨 ClipDrop API - 100 calls/tháng miễn phí
+async function enhanceWithClipDrop(imageData) {
+    // Kiểm tra API key
+    if (!window.API_CONFIG || !window.API_CONFIG.CLIPDROP_API_KEY || window.API_CONFIG.CLIPDROP_API_KEY === 'YOUR_CLIPDROP_KEY_HERE') {
+        throw new Error('🔧 Demo mode: Chưa cấu hình ClipDrop API key. Sẽ dùng AI Simulation.');
+    }
+
+    const response = await fetch(imageData);
+    const blob = await response.blob();
+
+    const formData = new FormData();
+    formData.append('image_file', blob);
+
+    console.log('🎨 Đang gửi ảnh lên ClipDrop...');
+
+    const apiResponse = await fetch('https://clipdrop-api.co/image-upscaling/v1/upscale', {
+        method: 'POST',
+        headers: {
+            'x-api-key': window.API_CONFIG.CLIPDROP_API_KEY
+        },
+        body: formData
+    });
+
+    if (!apiResponse.ok) {
+        const errorText = await apiResponse.text();
+        throw new Error(`ClipDrop API failed: ${apiResponse.status} - ${errorText}`);
+    }
+
+    const result = await apiResponse.blob();
+    console.log('✅ ClipDrop thành công!');
+    return URL.createObjectURL(result);
+}
+
+// Resize ảnh cho API
+async function resizeForAPI(blob, maxSize = 1500) {
+    return new Promise((resolve) => {
+        const img = new Image();
+        img.onload = () => {
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+
+            // Calculate new size
+            let { width, height } = img;
+            if (width > maxSize || height > maxSize) {
+                const ratio = Math.min(maxSize / width, maxSize / height);
+                width *= ratio;
+                height *= ratio;
+            }
+
+            canvas.width = width;
+            canvas.height = height;
+            ctx.drawImage(img, 0, 0, width, height);
+
+            canvas.toBlob(resolve, 'image/jpeg', 0.9);
+        };
+
+        img.src = URL.createObjectURL(blob);
+    });
 }
 
 // Initialize app
