@@ -176,7 +176,7 @@ class APICApp {
             const img = new Image();
             img.onload = () => {
                 const canvas = document.createElement('canvas');
-                const ctx = canvas.getContext('2d');
+                const ctx = canvas.getContext('2d', { willReadFrequently: true });
 
                 // Upscale 2x
                 canvas.width = img.width * 2;
@@ -450,7 +450,7 @@ async function resizeForAPI(blob, maxSize = 1500) {
         const img = new Image();
         img.onload = () => {
             const canvas = document.createElement('canvas');
-            const ctx = canvas.getContext('2d');
+            const ctx = canvas.getContext('2d', { willReadFrequently: true });
 
             // Calculate new size
             let { width, height } = img;
