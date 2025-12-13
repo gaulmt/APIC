@@ -1,3 +1,6 @@
+// � API Coonfiguration được load từ config.js (file riêng tư)
+// File config.js không được commit lên GitHub để bảo mật
+
 class APICApp {
     constructor() {
         this.initializeElements();
@@ -135,10 +138,11 @@ class APICApp {
             let enhancedImageData;
 
             try {
-                // Thử các AI service thực như SnapEdit
-                enhancedImageData = await this.tryRealAIServices(this.originalImageData);
+                // Thử các AI service thực (cần API keys)
+                enhancedImageData = await tryRealAIServices(this.originalImageData);
             } catch (error) {
                 console.log('⚠️ AI services không khả dụng, dùng simulation mạnh...');
+                console.log('� Để dùng AI thật, xem hướng dẫn trong api-setup.md và huggingface-setup.md');
                 enhancedImageData = await this.superAdvancedSimulation(this.originalImageData);
             }
 
@@ -183,22 +187,22 @@ class APICApp {
                 let imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
 
                 console.log('🔧 Pass 1: Unsharp Mask mạnh...');
-                imageData = this.applyPowerfulUnsharpMask(imageData);
+                imageData = applyPowerfulUnsharpMask(imageData);
                 ctx.putImageData(imageData, 0, 0);
 
                 console.log('🔧 Pass 2: High-frequency enhancement...');
                 imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-                imageData = this.enhanceHighFrequency(imageData);
+                imageData = enhanceHighFrequency(imageData);
                 ctx.putImageData(imageData, 0, 0);
 
                 console.log('🔧 Pass 3: Edge sharpening...');
                 imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-                imageData = this.sharpenEdges(imageData);
+                imageData = sharpenEdges(imageData);
                 ctx.putImageData(imageData, 0, 0);
 
                 console.log('🔧 Pass 4: Clarity boost...');
                 imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-                imageData = this.boostClarity(imageData);
+                imageData = boostClarity(imageData);
                 ctx.putImageData(imageData, 0, 0);
 
                 resolve(canvas.toDataURL('image/jpeg', 0.95));
@@ -364,12 +368,15 @@ document.addEventListener('DOMContentLoaded', () => {
         }, 100);
     }
 });
-    // Thử các AI service thực như SnapEdit, Waifu2x, etc.
-    async tryRealAIServices(imageData) {
+
+// Thử các AI service thực như Hugging Face, ClipDrop, etc.
+async function tryRealAIServices(imageData) {
     const services = [
-        () => this.enhanceWithWaifu2x(imageData),
-        () => this.enhanceWithSnapEditLike(imageData),
-        () => this.enhanceWithUpscalerAPI(imageData)
+        () => enhanceWithHuggingFace(imageData),
+        () => enhanceWithClipDrop(imageData),
+        () => enhanceWithWaifu2x(imageData),
+        () => enhanceWithSnapEditLike(imageData),
+        () => enhanceWithUpscalerAPI(imageData)
     ];
 
     for (let i = 0; i < services.length; i++) {
@@ -384,13 +391,85 @@ document.addEventListener('DOMContentLoaded', () => {
     throw new Error('Tất cả AI services thất bại');
 }
 
-    // Waifu2x API - AI thực
-    async enhanceWithWaifu2x(imageData) {
+// 🤗 Hugging Face API - MIỄN PHÍ hoàn toàn, không giới hạn
+async function enhanceWithHuggingFace(imageData) {
+    // Kiểm tra xem config.js có được load không
+    if (typeof window.API_CONFIG === 'undefined') {
+        throw new Error('File config.js không được tìm thấy. Tạo file config.js với API keys của bạn.');
+    }
+
+    // Kiểm tra API token
+    if (!window.API_CONFIG.HUGGING_FACE_TOKEN || window.API_CONFIG.HUGGING_FACE_TOKEN === 'YOUR_HF_TOKEN_HERE') {
+        throw new Error('Chưa cấu hình Hugging Face token trong config.js');
+    }
+
+    const response = await fetch(imageData);
+    const blob = await response.blob();
+
+    // Resize nếu quá lớn (HF có giới hạn 5MB)
+    const resizedBlob = await resizeForAPI(blob, 1024);
+
+    console.log('🤗 Đang gửi ảnh lên Hugging Face...');
+
+    const apiResponse = await fetch('https://api-inference.huggingface.co/models/caidas/swin2SR-realworld-sr-x4-64-bsrgan-psnr', {
+        method: 'POST',
+        headers: {
+            'Authorization': `Bearer ${window.API_CONFIG.HUGGING_FACE_TOKEN}`,
+            'Content-Type': 'application/octet-stream'
+        },
+        body: resizedBlob
+    });
+
+    if (!apiResponse.ok) {
+        const errorText = await apiResponse.text();
+        throw new Error(`Hugging Face API failed: ${apiResponse.status} - ${errorText}`);
+    }
+
+    const result = await apiResponse.blob();
+    console.log('✅ Hugging Face thành công!');
+    return URL.createObjectURL(result);
+}
+
+// 🎨 ClipDrop API - 100 calls/tháng miễn phí
+async function enhanceWithClipDrop(imageData) {
+    // Kiểm tra API key
+    if (!window.API_CONFIG || !window.API_CONFIG.CLIPDROP_API_KEY || window.API_CONFIG.CLIPDROP_API_KEY === 'YOUR_CLIPDROP_KEY_HERE') {
+        throw new Error('Chưa cấu hình ClipDrop API key trong config.js');
+    }
+
+    const response = await fetch(imageData);
+    const blob = await response.blob();
+
+    const formData = new FormData();
+    formData.append('image_file', blob);
+
+    console.log('🎨 Đang gửi ảnh lên ClipDrop...');
+
+    const apiResponse = await fetch('https://clipdrop-api.co/image-upscaling/v1/upscale', {
+        method: 'POST',
+        headers: {
+            'x-api-key': window.API_CONFIG.CLIPDROP_API_KEY
+        },
+        body: formData
+    });
+
+    if (!apiResponse.ok) {
+        const errorText = await apiResponse.text();
+        throw new Error(`ClipDrop API failed: ${apiResponse.status} - ${errorText}`);
+    }
+
+    const result = await apiResponse.blob();
+    console.log('✅ ClipDrop thành công!');
+    return URL.createObjectURL(result);
+}
+
+// Waifu2x API - AI thực
+async function enhanceWithWaifu2x(imageData) {
     const response = await fetch(imageData);
     const blob = await response.blob();
 
     // Resize nếu quá lớn
-    const resizedBlob = await this.resizeForAPI(blob, 1500);
+    const resizedBlob = await resizeForAPI(blob, 1500);
 
     const formData = new FormData();
     formData.append('file', resizedBlob);
@@ -411,8 +490,8 @@ document.addEventListener('DOMContentLoaded', () => {
     return URL.createObjectURL(result);
 }
 
-    // SnapEdit-like API (sử dụng AI.Image.Enhancer)
-    async enhanceWithSnapEditLike(imageData) {
+// SnapEdit-like API (sử dụng AI.Image.Enhancer)
+async function enhanceWithSnapEditLike(imageData) {
     const response = await fetch(imageData);
     const blob = await response.blob();
 
@@ -438,8 +517,8 @@ document.addEventListener('DOMContentLoaded', () => {
     return result.enhanced_image_url;
 }
 
-    // Upscaler API - AI service khác
-    async enhanceWithUpscalerAPI(imageData) {
+// Upscaler API - AI service khác
+async function enhanceWithUpscalerAPI(imageData) {
     const response = await fetch(imageData);
     const blob = await response.blob();
 
@@ -473,8 +552,8 @@ document.addEventListener('DOMContentLoaded', () => {
     return result.result_url;
 }
 
-    // Resize ảnh cho API
-    async resizeForAPI(blob, maxSize = 1500) {
+// Resize ảnh cho API
+async function resizeForAPI(blob, maxSize = 1500) {
     return new Promise((resolve) => {
         const img = new Image();
         const canvas = document.createElement('canvas');
@@ -502,7 +581,7 @@ document.addEventListener('DOMContentLoaded', () => {
 }
 
 // Powerful Unsharp Mask cho simulation
-applyPowerfulUnsharpMask(imageData) {
+function applyPowerfulUnsharpMask(imageData) {
     const data = imageData.data;
     const width = imageData.width;
     const height = imageData.height;
@@ -535,7 +614,7 @@ applyPowerfulUnsharpMask(imageData) {
 }
 
 // High-frequency enhancement
-enhanceHighFrequency(imageData) {
+function enhanceHighFrequency(imageData) {
     const data = imageData.data;
     const width = imageData.width;
     const height = imageData.height;
@@ -568,7 +647,7 @@ enhanceHighFrequency(imageData) {
 }
 
 // Edge sharpening
-sharpenEdges(imageData) {
+function sharpenEdges(imageData) {
     const data = imageData.data;
     const width = imageData.width;
     const height = imageData.height;
@@ -600,7 +679,7 @@ sharpenEdges(imageData) {
 }
 
 // Clarity boost
-boostClarity(imageData) {
+function boostClarity(imageData) {
     const data = imageData.data;
     const output = new Uint8ClampedArray(data);
 
