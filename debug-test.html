@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Debug Test</title>
+    <script src="config.js"></script>
+</head>
+
+<body>
+    <h1>Debug Test</h1>
+    <button onclick="testConfig()">Test Config</button>
+    <div id="result"></div>
+
+    <script>
+        function testConfig() {
+            const result = document.getElementById('result');
+
+            console.log('=== DEBUG TEST ===');
+            console.log('window.API_CONFIG:', window.API_CONFIG);
+
+            if (window.API_CONFIG) {
+                console.log('✅ Config loaded!');
+                console.log('Token:', window.API_CONFIG.HUGGING_FACE_TOKEN);
+
+                if (window.API_CONFIG.HUGGING_FACE_TOKEN && window.API_CONFIG.HUGGING_FACE_TOKEN !== 'YOUR_HF_TOKEN_HERE') {
+                    console.log('✅ Token is valid!');
+                    result.innerHTML = '✅ Config OK - Token: ' + window.API_CONFIG.HUGGING_FACE_TOKEN.substring(0, 10) + '...';
+                } else {
+                    console.log('❌ Token is placeholder');
+                    result.innerHTML = '❌ Token is placeholder';
+                }
+            } else {
+                console.log('❌ Config not loaded');
+                result.innerHTML = '❌ Config not loaded';
+            }
+        }
+
+        // Auto test on load
+        window.onload = testConfig;
+    </script>
+</body>
+
+</html>

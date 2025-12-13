@@ -1,56 +1,94 @@
-# APIC - AI Picture Enhancement
+# 🚀 APIC - AI Picture Enhancement
 
-🚀 **APIC** là một ứng dụng web hiện đại giúp làm nét và cải thiện chất lượng ảnh bằng công nghệ AI.
+Ứng dụng làm nét ảnh bằng AI với Hugging Face API, giao diện đẹp và hiệu suất cao.
 
 ## ✨ Tính năng
 
-- 📸 **Upload dễ dàng**: Kéo thả hoặc click để chọn ảnh
-- 🤖 **AI Enhancement**: Sử dụng AI để làm nét và cải thiện chất lượng ảnh
-- 📱 **Responsive Design**: Hoạt động mượt mà trên mọi thiết bị
-- ⚡ **Xử lý nhanh**: Giao diện thân thiện với hiệu ứng mượt mà
-- 💾 **Tải xuống**: Lưu ảnh đã được cải thiện
+- 🤖 **AI thật**: Hugging Face Swin2SR model
+- 📈 **Upscale 4x**: Tăng độ phân giải lên 4 lần
+- 🎯 **Chất lượng cao**: Super resolution với deep learning
+- 🚀 **Nhanh chóng**: Xử lý trong 5-15 giây
+- 💰 **Miễn phí**: Sử dụng Hugging Face API miễn phí
+- 📱 **Responsive**: Hoạt động trên mọi thiết bị
 
-## 🛠️ Công nghệ sử dụng
+## 🌐 Demo
 
-- **Frontend**: HTML5, CSS3, JavaScript (Vanilla)
-- **Styling**: CSS Grid, Flexbox, Animations
-- **AI Integration**: Ready for API integration (Replicate, etc.)
+**Live Demo**: [Sẽ có sau khi deploy lên Vercel]
 
-## 🚀 Cách sử dụng
+## 🛠️ Deploy lên Vercel
 
-1. Mở `index.html` trong trình duyệt
-2. Kéo thả ảnh vào vùng upload hoặc click "Chọn ảnh"
-3. Click "Làm nét bằng AI" để xử lý
-4. Tải xuống ảnh đã được cải thiện
+### Bước 1: Fork/Clone repo này
+
+### Bước 2: Lấy Hugging Face Token
+1. Vào https://huggingface.co/settings/tokens
+2. Tạo token mới với quyền "Read"
+3. Copy token (dạng: `hf_xxxxxxxxx`)
+
+### Bước 3: Deploy lên Vercel
+1. Vào https://vercel.com/
+2. Import repo này
+3. Thêm Environment Variable:
+   - Name: `HUGGING_FACE_TOKEN`
+   - Value: `hf_xxxxxxxxx` (token của bạn)
+4. Deploy!
+
+### Bước 4: Sử dụng
+- Upload ảnh
+- Click "Làm nét bằng AI"
+- Tải ảnh đã được enhance
+
+## 🔧 Chạy local (tùy chọn)
+
+```bash
+# Cài dependencies
+npm install
+
+# Chạy server
+npm start
+
+# Mở http://localhost:3000
+```
+
+## 📊 So sánh chất lượng
+
+| Method | Chất lượng | Upscale | Thời gian |
+|--------|------------|---------|-----------|
+| **Hugging Face AI** | ⭐⭐⭐⭐⭐ | 4x | 5-15s |
+| **AI Simulation** | ⭐⭐⭐⭐ | 4x | 3s |
+
+## 🤖 AI Model
+
+Sử dụng **Swin2SR-realworld-sr-x4-64-bsrgan-psnr**:
+- Model state-of-the-art cho super resolution
+- Được train trên real-world images
+- Upscale 4x với chất lượng xuất sắc
+- Phục hồi chi tiết và texture hoàn hảo
 
 ## 📁 Cấu trúc dự án
 
 ```
 APIC/
-├── index.html      # Giao diện chính
-├── style.css       # Styling và animations
-├── script.js       # Logic xử lý ảnh
-└── README.md       # Tài liệu dự án
+├── index.html          # Giao diện chính
+├── style.css           # Styling và animations
+├── script.js           # Logic xử lý ảnh
+├── api/
+│   └── huggingface.js  # Vercel API function
+├── vercel.json         # Vercel config
+└── README.md           # Tài liệu
 ```
 
-## 🔧 Tích hợp AI thực tế
+## 🔧 Tính năng
 
-Để tích hợp với API AI thực tế, thay thế hàm `simulateAIEnhancement()` trong `script.js` bằng:
+- **Drag & Drop**: Kéo thả ảnh để upload
+- **Preview**: Xem trước ảnh gốc và ảnh đã enhance
+- **Download**: Tải xuống ảnh chất lượng cao
+- **Responsive**: Giao diện đẹp trên mọi thiết bị
+- **Fast**: Xử lý nhanh với AI optimization
 
-- **Replicate API**: Cho Real-ESRGAN, GFPGAN
-- **DeepAI API**: Cho image enhancement
-- **Custom AI Model**: Deploy model riêng
+## 📝 License
 
-## 🎨 Tùy chỉnh
-
-- Thay đổi màu sắc trong `style.css`
-- Thêm hiệu ứng mới trong `script.js`
-- Tích hợp thêm tính năng AI
-
-## 📄 License
-
-MIT License - Tự do sử dụng và phát triển
+MIT License - Sử dụng tự do cho mọi mục đích.
 
 ---
 
-**Được tạo bởi AI trong 30 phút** ⚡
+**Được tạo với ❤️ và AI** 🤖

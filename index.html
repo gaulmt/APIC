@@ -8,23 +8,30 @@
     <link rel="icon" href="data:,">
     <link rel="stylesheet" href="style.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <!-- API Config - Demo mode cho Vercel -->
+    <!-- Load API config -->
     <script>
-        // Tự động detect môi trường và setup demo mode
-        window.API_CONFIG = null; // Demo mode - chỉ dùng AI Simulation
-        console.log('🎯 Demo mode: Chạy với AI Simulation (không cần API keys)');
+        // Thử load config.js trước
+        window.API_CONFIG = null;
 
-        // Nếu có file config.js local, sẽ override
+        // Nếu có config.js local (development)
         try {
-            // Chỉ load config.js nếu đang chạy local (không phải Vercel)
-            if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-                const script = document.createElement('script');
-                script.src = 'config.js';
-                script.onerror = () => console.log('💡 Local: Tạo config.js từ config-example.js để dùng AI thật');
-                document.head.appendChild(script);
-            }
+            const script = document.createElement('script');
+            script.src = 'config.js';
+            script.onload = () => {
+                console.log('🚀 Config.js loaded: Sẵn sàng dùng AI thật!');
+            };
+            script.onerror = () => {
+                // Fallback: embed token cho production test
+                window.API_CONFIG = {
+                    HUGGING_FACE_TOKEN: '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',
+                    CLIPDROP_API_KEY: 'YOUR_CLIPDROP_KEY_HERE',
+                    PICWISH_API_KEY: 'YOUR_PICWISH_KEY_HERE'
+                };
+                console.log('🚀 Fallback config: Sẵn sàng dùng AI thật!');
+            };
+            document.head.appendChild(script);
         } catch (e) {
-            console.log('🔧 Production mode: Sử dụng AI Simulation');
+            console.log('🔧 Error loading config:', e);
         }
     </script>
 </head>

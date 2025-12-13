@@ -1,0 +1,10 @@
+{
+    "functions": {
+        "api/huggingface.js": {
+            "maxDuration": 30
+        }
+    },
+    "env": {
+        "HUGGING_FACE_TOKEN": "@hugging_face_token"
+    }
+}
