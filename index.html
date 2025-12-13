@@ -8,13 +8,23 @@
     <link rel="icon" href="data:,">
     <link rel="stylesheet" href="style.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <!-- Load API config trước script.js -->
-    <script src="config.js" onerror="console.log('🔧 Demo mode: config.js not found, using simulation only')"></script>
+    <!-- API Config - Demo mode cho Vercel -->
     <script>
-        // Fallback nếu config.js không load được (như trên Vercel)
-        if (typeof window.API_CONFIG === 'undefined') {
-            window.API_CONFIG = null; // Sẽ trigger demo mode
-            console.log('🔧 Demo mode: Running without API keys - using AI Simulation');
+        // Tự động detect môi trường và setup demo mode
+        window.API_CONFIG = null; // Demo mode - chỉ dùng AI Simulation
+        console.log('🎯 Demo mode: Chạy với AI Simulation (không cần API keys)');
+
+        // Nếu có file config.js local, sẽ override
+        try {
+            // Chỉ load config.js nếu đang chạy local (không phải Vercel)
+            if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+                const script = document.createElement('script');
+                script.src = 'config.js';
+                script.onerror = () => console.log('💡 Local: Tạo config.js từ config-example.js để dùng AI thật');
+                document.head.appendChild(script);
+            }
+        } catch (e) {
+            console.log('🔧 Production mode: Sử dụng AI Simulation');
         }
     </script>
 </head>
