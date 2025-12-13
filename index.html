@@ -9,7 +9,14 @@
     <link rel="stylesheet" href="style.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <!-- Load API config trước script.js -->
-    <script src="config.js"></script>
+    <script src="config.js" onerror="console.log('🔧 Demo mode: config.js not found, using simulation only')"></script>
+    <script>
+        // Fallback nếu config.js không load được (như trên Vercel)
+        if (typeof window.API_CONFIG === 'undefined') {
+            window.API_CONFIG = null; // Sẽ trigger demo mode
+            console.log('🔧 Demo mode: Running without API keys - using AI Simulation');
+        }
+    </script>
 </head>
 
 <body>

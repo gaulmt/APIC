@@ -143,6 +143,11 @@ class APICApp {
             } catch (error) {
                 console.log('⚠️ AI services không khả dụng, dùng simulation mạnh...');
                 console.log('� Để dùng AI thật, xem hướng dẫn trong api-setup.md và huggingface-setup.md');
+                // Kiểm tra nếu đang ở demo mode
+                if (!window.API_CONFIG) {
+                    console.log('🎯 Demo mode: Đang chạy mà không có API keys');
+                }
+
                 enhancedImageData = await this.superAdvancedSimulation(this.originalImageData);
             }
 
@@ -394,13 +399,13 @@ async function tryRealAIServices(imageData) {
 // 🤗 Hugging Face API - MIỄN PHÍ hoàn toàn, không giới hạn
 async function enhanceWithHuggingFace(imageData) {
     // Kiểm tra xem config.js có được load không
-    if (typeof window.API_CONFIG === 'undefined') {
-        throw new Error('File config.js không được tìm thấy. Tạo file config.js với API keys của bạn.');
+    if (typeof window.API_CONFIG === 'undefined' || !window.API_CONFIG) {
+        throw new Error('🔧 Demo mode: Chưa cấu hình API keys. Sẽ dùng AI Simulation.');
     }
 
     // Kiểm tra API token
     if (!window.API_CONFIG.HUGGING_FACE_TOKEN || window.API_CONFIG.HUGGING_FACE_TOKEN === 'YOUR_HF_TOKEN_HERE') {
-        throw new Error('Chưa cấu hình Hugging Face token trong config.js');
+        throw new Error('🔧 Demo mode: Chưa cấu hình Hugging Face token. Sẽ dùng AI Simulation.');
     }
 
     const response = await fetch(imageData);
@@ -434,7 +439,7 @@ async function enhanceWithHuggingFace(imageData) {
 async function enhanceWithClipDrop(imageData) {
     // Kiểm tra API key
     if (!window.API_CONFIG || !window.API_CONFIG.CLIPDROP_API_KEY || window.API_CONFIG.CLIPDROP_API_KEY === 'YOUR_CLIPDROP_KEY_HERE') {
-        throw new Error('Chưa cấu hình ClipDrop API key trong config.js');
+        throw new Error('🔧 Demo mode: Chưa cấu hình ClipDrop API key. Sẽ dùng AI Simulation.');
     }
 
     const response = await fetch(imageData);
