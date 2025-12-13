@@ -140,9 +140,14 @@ class APICApp {
                     console.log('🚀 Thử AI services thực...');
                     enhancedImageData = await tryRealAIServices(this.originalImageData);
                 } catch (error) {
-                    console.log('⚠️ AI services thất bại (có thể do CORS), fallback simulation...');
+                    console.log('⚠️ AI services thất bại, fallback simulation...');
                     console.log('💡 Lỗi:', error.message);
-                    console.log('🔧 Tip: CORS chỉ ảnh hưởng localhost, production sẽ OK');
+
+                    if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+                        console.log('🔧 Local: CORS blocked như mong đợi. Deploy lên Vercel để dùng AI thật!');
+                    } else {
+                        console.log('🔧 Production: Có thể API đang loading, thử lại sau 30s');
+                    }
                     enhancedImageData = await this.superAdvancedSimulation(this.originalImageData);
                 }
             } else {
@@ -400,25 +405,56 @@ async function enhanceWithHuggingFace(imageData) {
         reader.readAsDataURL(resizedBlob);
     });
 
-    const apiResponse = await fetch('/api/huggingface', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-            image: base64Image,
-            token: window.API_CONFIG.HUGGING_FACE_TOKEN
-        })
-    });
+    // Detect environment và chọn API endpoint
+    const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.port;
 
+    let apiResponse;
+
+    if (isLocal) {
+        // Local: Gọi trực tiếp Hugging Face (có thể bị CORS)
+        try {
+            const imageBuffer = await resizedBlob.arrayBuffer();
+            apiResponse = await fetch('https://api-inference.huggingface.co/models/caidas/swin2SR-realworld-sr-x4-64-bsrgan-psnr', {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${window.API_CONFIG.HUGGING_FACE_TOKEN}`,
+                    'Content-Type': 'application/octet-stream'
+                },
+                body: imageBuffer
+            });
+
+            if (apiResponse.ok) {
+                const result = await apiResponse.blob();
+                console.log('✅ Hugging Face AI thành công (direct call)!');
+                return URL.createObjectURL(result);
+            }
+        } catch (corsError) {
+            console.log('⚠️ CORS error như mong đợi, fallback simulation...');
+            throw new Error('CORS blocked - using simulation');
+        }
+    } else {
+        // Production: Dùng Vercel API
+        apiResponse = await fetch('/api/huggingface', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                image: base64Image,
+                token: window.API_CONFIG.HUGGING_FACE_TOKEN
+            })
+        });
+    }
+
+    // Xử lý response cho Vercel API
     if (!apiResponse.ok) {
         const errorText = await apiResponse.text();
-        throw new Error(`Vercel API error: ${apiResponse.status} - ${errorText}`);
+        throw new Error(`API error: ${apiResponse.status} - ${errorText}`);
     }
 
     const result = await apiResponse.json();
     if (result.success) {
-        console.log('✅ Hugging Face AI thành công!');
+        console.log('✅ Hugging Face AI thành công (via Vercel)!');
         return result.image;
     } else {
         throw new Error(result.error || 'Unknown API error');
